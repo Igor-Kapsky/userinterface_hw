@@ -1,0 +1,15 @@
+{
+    "passwordLength" : 10,
+    "emailLength" : 6,
+    "domainLength" : 5,
+    "interestsAmount" : 3,
+    "uploadErrorText" : "Please upload a picture",
+    "interestsErrorText" : "Please choose 3 interests.",
+    "colorStyle" : "color",
+    "greenColorRGB" : "rgb(41, 197, 102)",
+    "hiddenAttribute" : "is-hidden",
+    "hideDurationStyle" : "transition-duration",
+    "heightStyle" : "height",
+    "heightValueAfterHide" : "10px",
+    "timerStartValue" : "00:00:00"
+}
