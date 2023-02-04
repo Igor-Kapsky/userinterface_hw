@@ -1,13 +1,14 @@
-import { Selector } from 'testcafe';
+// import { Selector } from 'testcafe';
 import StartPage from './pages/startPage.js';
 import GamePage from './pages/gamePage.js';
+import { assert } from 'chai';
 import {
     passwordGenerator,
     emailGenerator,
     textGenerator,
     stringContainsValue,
     convertTimeout
-} from './utils/helper.js';
+} from './utils/helpers';
 import TestData from './testData.json';
 
 
@@ -15,52 +16,64 @@ fixture`Getting Started`
     .page`https://userinyerface.com/`;
 
 test('Registration', async t => {
-    await StartPage.startGame();
+    const startPage = new StartPage();
+    const gamePage = new GamePage();
+    await startPage.startGame();
 
-    await t.expect(Selector(GamePage.loginForm).exists).ok();
+    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
     const password = passwordGenerator(TestData.passwordLength);
-    await GamePage.fillInText(GamePage.passwordField, password);
-    await GamePage.fillInText(GamePage.emailField, emailGenerator(TestData.emailLength, password));
-    await GamePage.fillInText(GamePage.domainField, textGenerator(TestData.domainLength));
-    await GamePage.selectTldOption();
-    await GamePage.acceptConditions();
-    await GamePage.goToNextStep();
+    await gamePage.enterPassword(password);
+    await gamePage.enterEmail(emailGenerator(TestData.emailLength, password));
+    await gamePage.enterDomain(textGenerator(TestData.domainLength));
+    await gamePage.selectRandomTldOption();
+    await gamePage.acceptConditions();
+    await gamePage.goToNextStep();
 
-    await t.expect(Selector(GamePage.avatarAndInterestsForm).exists).ok();
-    await GamePage.selectInterests(TestData.interestsAmount);
-    await GamePage.clickNextButton();
-    await t.expect(Selector(GamePage.validationError(TestData.uploadErrorText)).exists).ok();
-    await t.expect(Selector(GamePage.validationError(TestData.uploadErrorText)).getStyleProperty(TestData.colorStyle)).eql(TestData.greenColorRGB);
-    await t.expect(Selector(GamePage.validationError(TestData.interestsErrorText)).exists).notOk();
+    assert.isTrue(await gamePage.isComponentExists(gamePage.avatarAndInterestsFormLabel));
+    await gamePage.selectInterests(TestData.interestsAmount);
+    await gamePage.clickNextButton();
+    assert.isTrue(await gamePage.isComponentExists(gamePage.validationErrorLabel(TestData.uploadErrorText)));
+    assert.isTrue(await gamePage.isCorrectStyle(gamePage.validationErrorLabel(TestData.uploadErrorText), TestData.colorStyle, TestData.greenColorRGB));
+    assert.isFalse(await gamePage.isComponentExists(gamePage.validationErrorLabel(TestData.interestsErrorText)));
 });
 
 test('Hide help form', async t => {
-    await StartPage.startGame();
+    const startPage = new StartPage();
+    const gamePage = new GamePage();
+    await startPage.startGame();
 
-    await t.expect(Selector(GamePage.loginForm).exists).ok();
-    await t.expect(Selector(GamePage.helpModal).exists).ok();
-    const attributesBefore = await Selector(GamePage.helpModal).attributes;
-    await t.expect(stringContainsValue(attributesBefore.class, TestData.hiddenAttribute)).notOk;
-    await GamePage.hideHelpForm();
-    const attributesAfter = await Selector(GamePage.helpModal).attributes;
-    await t.expect(stringContainsValue(attributesAfter.class, TestData.hiddenAttribute)).ok;
-    const timeoutValueStr = await Selector(GamePage.helpModal).getStyleProperty(TestData.hideDurationStyle);
+
+    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
+    assert.isTrue(await gamePage.isComponentExists(gamePage.helpModalLabel));
+    const attributesBefore = await gamePage.getAttribute(gamePage.helpModalLabel);
+    assert.isFalse(stringContainsValue(attributesBefore.class, TestData.hiddenAttribute));
+    await gamePage.hideHelpForm();
+    const attributesAfter = await gamePage.getAttribute(gamePage.helpModalLabel);
+    assert.isTrue(stringContainsValue(attributesAfter.class, TestData.hiddenAttribute));
+    const timeoutValueStr = await gamePage.getStyle(gamePage.helpModalLabel, TestData.hideDurationStyle);
     const timeoutValueInt = convertTimeout(timeoutValueStr);
-    await t.expect(Selector(GamePage.helpModal).getStyleProperty(TestData.heightStyle)).eql(TestData.heightValueAfterHide, { timeout: timeoutValueInt });
+    assert.isTrue(await gamePage.isCorrectStyle(gamePage.helpModalLabel, TestData.heightStyle, TestData.heightValueAfterHide, timeoutValueInt));
 });
 
 test('Accept cookies', async t => {
-    await StartPage.startGame();
+    const startPage = new StartPage();
+    const gamePage = new GamePage();
+    await startPage.startGame();
 
-    await t.expect(Selector(GamePage.loginForm).exists).ok();
-    await t.expect(Selector(GamePage.cookiesForm).exists).ok();
-    await GamePage.acceptCookies();
-    await t.expect(Selector(GamePage.cookiesForm).exists).notOk();
+
+    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
+    await gamePage.waitForCookiesModal();
+    await gamePage.acceptCookies();
+    assert.isFalse(await gamePage.isComponentExists(gamePage.cookiesFormLabel));
 });
 
 test('Check timer placeholder', async t => {
-    await StartPage.startGame();
+    const startPage = new StartPage();
+    const gamePage = new GamePage();
+    await startPage.startGame();
 
-    const startTime = await GamePage.getTime();
-    await t.expect(startTime).eql(TestData.timerStartValue);
+
+    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
+    const startTime = await gamePage.getTime();
+    assert.strictEqual(startTime, TestData.timerStartValue);
 });

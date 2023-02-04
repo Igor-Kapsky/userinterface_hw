@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/Igor-Kapsky/userinterface_hw/issues"
   },
-  "homepage": "https://github.com/Igor-Kapsky/userinterface_hw#readme"
+  "homepage": "https://github.com/Igor-Kapsky/userinterface_hw#readme",
+  "dependencies": {
+    "chai": "^4.3.7"
+  }
 }

@@ -1,6 +1,6 @@
 'use strict';
 
-export function passwordGenerator(length) {
+function passwordGenerator(length) {
     let password = '';
     const capitalChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const cyrilicChars = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
@@ -19,13 +19,13 @@ export function passwordGenerator(length) {
     return password;
 }
 
-export function emailGenerator(length, password) {
+function emailGenerator(length, password) {
     let email = password[password.length-1];
     email += textGenerator(length - 1);
     return email;
 }
 
-export function textGenerator(length) {
+function textGenerator(length) {
     let result = '';
     const characters = 'abcdefghijklmnopqrstuvwxyz';
     const charactersLength = characters.length;
@@ -36,13 +36,13 @@ export function textGenerator(length) {
     return result;
 }
 
-export function getRandomIntInclusive(min, max) {
+function getRandomIntInclusive(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export function getRandomIntsInRange(amount, max, selectAllIndex) {
+function getRandomIntsInRange(amount, max, selectAllIndex) {
     let arr = [];
     while (arr.length < amount) {
         let r = Math.floor(Math.random() * max);
@@ -53,16 +53,27 @@ export function getRandomIntsInRange(amount, max, selectAllIndex) {
     return arr;
 }
 
-export function findIndexByText(arr) {
+function findIndexByText(arr) {
     return arr.indexOf('Select all');
 }
 
-export function stringContainsValue(str, value) {
+function stringContainsValue(str, value) {
     return str.includes(value);
 }
 
-export function convertTimeout(str) {
+function convertTimeout(str) {
     str = str.slice(0, -1);
     str = str.concat('000');
     return parseInt(str);
 }
+
+export {
+    passwordGenerator,
+    emailGenerator,
+    textGenerator,
+    getRandomIntInclusive,
+    getRandomIntsInRange,
+    findIndexByText,
+    stringContainsValue,
+    convertTimeout
+};

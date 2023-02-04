@@ -1,90 +1,118 @@
-import { Selector, t } from 'testcafe';
-import { findIndexByText, getRandomIntInclusive, getRandomIntsInRange } from '../utils/helper.js';
+'use strict';
 
-class GamePage {
-    constructor() {
-        this.loginForm = '.login-form__container';
-        this.passwordField = '.login-form__field-row input[placeholder="Choose Password"]';
-        this.emailField = '.login-form__field-row input[placeholder="Your email"]';
-        this.domainField = '.login-form__field-row input[placeholder="Domain"]';
-        this.tldDropdown = '.login-form__field-row .dropdown__field';
-        this.dropdownItem = '.dropdown__list .dropdown__list-item:not(.selected)';
-        this.acceptConditionsCheckbox = '.checkbox__check';
-        this.nextButton = Selector('.button-container__secondary .button--secondary').withText('Next');
+import { findIndexByText, getRandomIntInclusive, getRandomIntsInRange } from '../utils/helpers';
+import { waitForTrue } from '../utils/waiter.js';
+import { BaseComponent, Input, Button, Label, Dropdown, Checkbox } from '../components';
+import { Selector } from 'testcafe';
+import TestData from '../testData.json';
 
-        this.avatarAndInterestsForm = '.avatar-and-interests';
-        this.checkboxSelector = '.avatar-and-interests__interests-list .checkbox';
-        this.checkboxTitleSelector = Selector(this.checkboxSelector).nextSibling();
-        this.nextButtonBlue = Selector('.button--white').withText('Next');
-        this.validationError = (error) => Selector('.avatar-and-interests__error').withText(`${error}`);
 
-        this.helpModal = '.help-form';
-        this.hideHelpModalButton ='.help-form__send-to-bottom-button';
 
-        this.cookiesForm = '.cookies';
-        this.agreeToUseCookiesButton = '.cookies .button--transparent';
+export default class GamePage extends BaseComponent {
+    constructor(selector, name) {
+        super(selector || '.game', name || 'Game page', 'Page', null);
 
-        this.timer = '.timer';
+        this.loginFormLabel = new Label('.login-form__container', 'Login form', this);
+        this.passwordFieldInput = new Input('.login-form__field-row input[placeholder="Choose Password"]', 'Password field', this);
+        this.emailFieldInput = new Input('.login-form__field-row input[placeholder="Your email"]', 'Email field', this);
+        this.domainFieldInput = new Input('.login-form__field-row input[placeholder="Domain"]', 'Domain field', this);
+        this.tldDropdown = new Dropdown( '.login-form__field-row .dropdown__field', 'TLD dropdown', this);
+        this.commonDropdown = new Dropdown('.dropdown__list', 'Dropdown', this);
+        this.acceptConditionsCheckbox = new Checkbox('.checkbox', 'Accept conditions checkbox', this);
+        this.nextButton = new Button(Selector('.button-container__secondary .button--secondary').withText('Next'), 'Next button', this);
+
+        this.avatarAndInterestsFormLabel = new Label('.avatar-and-interests', 'Avatar and interests', this);
+        this.interestCheckbox = new Checkbox('.avatar-and-interests__interests-list .checkbox', 'Interest checkbox', this);
+        this.nextBlueButton = new Button(Selector('.button--white').withText('Next'), 'Blue next button', this);
+        this.validationErrorLabel = (error) => new Label(Selector('.avatar-and-interests__error').withText(`${error}`), `Error ${error} label`, this);
+
+        this.helpModalLabel = new Label('.help-form', 'Help Modal', this);
+        this.hideHelpModalButton = new Button('.help-form__send-to-bottom-button', 'Hide help button', this);
+
+        this.cookiesFormLabel = new Label('.cookies', 'Cookies modal', this);
+        this.agreeToUseCookiesButton = new Button('.cookies .button--transparent', 'Agree button', this);
+
+        this.timerLabel = new Label('.timer', 'Timer', this);
+    }
+
+    async isComponentExists(component) {
+        return await component.isExists();
+    }
+
+    async waitForCookiesModal() {
+        return await this.cookiesFormLabel.waitUntilComponentIsExisting();
     }
 
     async clearField(field) {
-        await t.click(field).pressKey('ctrl+a delete');
+        await field.clear();
     }
 
-    async fillInText(field, text) {
-        await this.clearField(field);
-        await t.typeText(field, text);
+    async enterPassword(password) {
+        await this.clearField(this.passwordFieldInput);
+        await this.passwordFieldInput.sendKeys(password);
     }
 
-    async selectTldOption() {
-        const optionsCount = await Selector(this.dropdownItem).count - 1;
-        const randomOptionNumber = getRandomIntInclusive(0, optionsCount);
-        await t.click(this.tldDropdown).click(Selector(this.dropdownItem).nth(randomOptionNumber));
+    async enterEmail(email) {
+        await this.clearField(this.emailFieldInput);
+        await this.emailFieldInput.sendKeys(email);
+    }
+
+    async enterDomain(domain) {
+        await this.clearField(this.domainFieldInput);
+        await this.domainFieldInput.sendKeys(domain);
+    }
+
+    async selectRandomTldOption() {
+        await this.tldDropdown.openDropdown();
+        const optionsCount = await this.commonDropdown.getOptionValues();
+        const randomOptionNumber = getRandomIntInclusive(1, optionsCount.length - 1);
+        await this.commonDropdown.selectByIndex(randomOptionNumber);
     }
 
     async acceptConditions() {
-        await t.click(this.acceptConditionsCheckbox);
+        await this.acceptConditionsCheckbox.click();
     }
 
     async goToNextStep() {
-        await t.click(this.nextButton);
+        await this.nextButton.click();
     }
 
     async selectInterests(shouldBeSelected) {
-        const optionsCount = await Selector(this.checkboxSelector).count - 1;
-        const allTitles = await this.getInterestsTitles();
-        const selectAllIndex = await findIndexByText(allTitles);
-        const selectedOptions = getRandomIntsInRange(shouldBeSelected, optionsCount, selectAllIndex);
-        await t.click(Selector(this.checkboxSelector).nth(optionsCount));
+        const options = await this.interestCheckbox.getOptionValues();
+        const selectAllIndex = await findIndexByText(options);
+        const selectedOptions = getRandomIntsInRange(shouldBeSelected, options.length - 1, selectAllIndex);
+        await this.interestCheckbox.selectByIndex(options.length - 1);
         for (let i = 0; i < shouldBeSelected; i++) {
-            await t.click(Selector(this.checkboxSelector).nth(selectedOptions[i]));
+            await this.interestCheckbox.selectByIndex(selectedOptions[i]);
         }
-    }
-
-    async getInterestsTitles() {
-        const count = await Selector(this.checkboxTitleSelector).count - 1;
-        let allTitles = [];
-        for (let i = 0; i < count; i++) {
-            allTitles.push(await Selector(this.checkboxTitleSelector).nth(i).innerText);
-        }
-        return allTitles;
     }
 
     async clickNextButton() {
-        await t.click(this.nextButtonBlue);
+        await this.nextBlueButton.click();
+    }
+
+    async isCorrectStyle(element, style, expected, timeout = TestData.timeout) {
+        return await waitForTrue(async () => await element.getStyleProperty(style) === expected, timeout);
+    }
+
+    async getStyle(element, style) {
+        const test = await element.getStyleProperty(style);
+        return test;
+    }
+
+    async getAttribute(element) {
+        return await element.getComponentAttributes();
     }
 
     async acceptCookies() {
-        await t.click(this.agreeToUseCookiesButton);
+        await this.agreeToUseCookiesButton.click();
     }
 
     async hideHelpForm() {
-        await t.click(this.hideHelpModalButton);
+        await this.hideHelpModalButton.click();
     }
 
     async getTime() {
-        return await Selector(this.timer).innerText;
+        return await this.timerLabel.getTextContent();
     }
 }
-
-export default new GamePage();

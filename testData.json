@@ -11,5 +11,6 @@
     "hideDurationStyle" : "transition-duration",
     "heightStyle" : "height",
     "heightValueAfterHide" : "10px",
-    "timerStartValue" : "00:00:00"
+    "timerStartValue" : "00:00:00",
+    "timeout" : 5000
 }
