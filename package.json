@@ -1,0 +1,26 @@
+{
+  "name": "userinterface_hw",
+  "version": "1.0.0",
+  "description": "homework",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "tests": "testcafe `chrome '--window-size=1920,1080'` --experimental-json-modules tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Igor-Kapsky/userinterface_hw.git"
+  },
+  "keywords": [
+    "testcafe"
+  ],
+  "author": "ik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Igor-Kapsky/userinterface_hw/issues"
+  },
+  "homepage": "https://github.com/Igor-Kapsky/userinterface_hw#readme",
+  "dependencies": {
+    "chai": "^4.3.7"
+  }
+}
