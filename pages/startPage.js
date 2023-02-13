@@ -4,9 +4,9 @@ import BaseComponent from '../components/baseComponent.js';
 import Button from '../components/button.js';
 
 
-export default class StartPage extends BaseComponent {
-    constructor(selector, name) {
-        super(selector || '.start', name || 'Start page', 'Page', null);
+class StartPage extends BaseComponent {
+    constructor() {
+        super('.start', 'Start page');
 
         this.startLinkButton = new Button('.start__link', 'Start link', this);
     }
@@ -15,3 +15,5 @@ export default class StartPage extends BaseComponent {
         await this.startLinkButton.click();
     }
 }
+
+export default new StartPage();

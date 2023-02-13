@@ -1,6 +1,8 @@
-// import { Selector } from 'testcafe';
-import StartPage from './pages/startPage.js';
-import GamePage from './pages/gamePage.js';
+import gamePage from './pages/gamePage.js';
+import startPage from './pages/startPage.js';
+import avatarAndInterestsPage from './pages/avatarAndInterestPage.js';
+import helpForm from './pages/helpForm.js';
+import cookiesForm from './pages/cookiesForm.js';
 import { assert } from 'chai';
 import {
     passwordGenerator,
@@ -16,11 +18,9 @@ fixture`Getting Started`
     .page`https://userinyerface.com/`;
 
 test('Registration', async t => {
-    const startPage = new StartPage();
-    const gamePage = new GamePage();
     await startPage.startGame();
 
-    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
+    assert.isTrue(await gamePage.isPageLoaded());
     const password = passwordGenerator(TestData.passwordLength);
     await gamePage.enterPassword(password);
     await gamePage.enterEmail(emailGenerator(TestData.emailLength, password));
@@ -29,51 +29,45 @@ test('Registration', async t => {
     await gamePage.acceptConditions();
     await gamePage.goToNextStep();
 
-    assert.isTrue(await gamePage.isComponentExists(gamePage.avatarAndInterestsFormLabel));
-    await gamePage.selectInterests(TestData.interestsAmount);
-    await gamePage.clickNextButton();
-    assert.isTrue(await gamePage.isComponentExists(gamePage.validationErrorLabel(TestData.uploadErrorText)));
-    assert.isTrue(await gamePage.isCorrectStyle(gamePage.validationErrorLabel(TestData.uploadErrorText), TestData.colorStyle, TestData.greenColorRGB));
-    assert.isFalse(await gamePage.isComponentExists(gamePage.validationErrorLabel(TestData.interestsErrorText)));
+    assert.isTrue(await avatarAndInterestsPage.isAvatarPageExists());
+    await avatarAndInterestsPage.selectInterests(TestData.interestsAmount);
+    await avatarAndInterestsPage.clickNextButton();
+    assert.isTrue(await avatarAndInterestsPage.isErrorExists(TestData.uploadErrorText));
+    assert.isTrue(await gamePage.isCorrectStyle(avatarAndInterestsPage.validationErrorLabel(TestData.uploadErrorText), TestData.colorStyle, TestData.greenColorRGB));
+    assert.isFalse(await avatarAndInterestsPage.isErrorExists(TestData.interestsErrorText));
 });
 
 test('Hide help form', async t => {
-    const startPage = new StartPage();
-    const gamePage = new GamePage();
     await startPage.startGame();
 
 
-    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
-    assert.isTrue(await gamePage.isComponentExists(gamePage.helpModalLabel));
-    const attributesBefore = await gamePage.getAttribute(gamePage.helpModalLabel);
+    assert.isTrue(await gamePage.isPageLoaded());
+    assert.isTrue(await helpForm.isHelpFormExists());
+    const attributesBefore = await helpForm.getAttribute(helpForm.helpModalLabel);
     assert.isFalse(stringContainsValue(attributesBefore.class, TestData.hiddenAttribute));
-    await gamePage.hideHelpForm();
-    const attributesAfter = await gamePage.getAttribute(gamePage.helpModalLabel);
+    await helpForm.hideHelpForm();
+    const attributesAfter = await helpForm.getAttribute(helpForm.helpModalLabel);
     assert.isTrue(stringContainsValue(attributesAfter.class, TestData.hiddenAttribute));
-    const timeoutValueStr = await gamePage.getStyle(gamePage.helpModalLabel, TestData.hideDurationStyle);
+    const timeoutValueStr = await gamePage.getStyle(helpForm.helpModalLabel, TestData.hideDurationStyle);
     const timeoutValueInt = convertTimeout(timeoutValueStr);
-    assert.isTrue(await gamePage.isCorrectStyle(gamePage.helpModalLabel, TestData.heightStyle, TestData.heightValueAfterHide, timeoutValueInt));
+    assert.isTrue(await gamePage.isCorrectStyle(helpForm.helpModalLabel, TestData.heightStyle, TestData.heightValueAfterHide, timeoutValueInt));
 });
 
 test('Accept cookies', async t => {
-    const startPage = new StartPage();
-    const gamePage = new GamePage();
     await startPage.startGame();
 
 
-    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
-    await gamePage.waitForCookiesModal();
-    await gamePage.acceptCookies();
-    assert.isFalse(await gamePage.isComponentExists(gamePage.cookiesFormLabel));
+    assert.isTrue(await gamePage.isPageLoaded());
+    await cookiesForm.waitForCookiesModal();
+    await cookiesForm.acceptCookies();
+    assert.isFalse(await cookiesForm.isCookiesFormExists());
 });
 
 test('Check timer placeholder', async t => {
-    const startPage = new StartPage();
-    const gamePage = new GamePage();
     await startPage.startGame();
 
 
-    assert.isTrue(await gamePage.isComponentExists(gamePage.loginFormLabel));
+    assert.isTrue(await gamePage.isPageLoaded());
     const startTime = await gamePage.getTime();
     assert.strictEqual(startTime, TestData.timerStartValue);
 });

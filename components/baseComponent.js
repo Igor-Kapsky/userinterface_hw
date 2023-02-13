@@ -2,6 +2,7 @@
 
 import { Selector, t } from 'testcafe';
 import { waitForTrue as utilsWaitForTrue } from '../utils/waiter';
+import TestData from '../config.json';
 
 class BaseComponent {
     /**
@@ -12,17 +13,9 @@ class BaseComponent {
      * @param {string} type - The type of the element (Input, Form, Page, etc.)
      * @param {BaseComponent | null} parent - A parent of the component. For Page it must be null (e.g. A Button has a parent a Form)
      */
-    constructor(selector, name, type, parent) {
-        if (!name || !type || (type !== 'Page' && !parent)) {
-            throw new Error(`Some of the required constructor parametes are not passed. Component constructor expects 4 params:
-                selector, name, type, parent (for components of type 'Page' parent is not required). 
-                Currently the following values have been passed:\nselector = ${selector}\nname = ${name}\ntype = ${type}\nparent = ${parent ? parent.name + ' ' + parent.type : null}`);
-        }
+    constructor(selector, name) {
         this.selector = selector;
         this.name = name;
-        this.type = type;
-        this.parent = parent;
-        this.nested = false;
     }
 
     /**
@@ -189,7 +182,7 @@ class BaseComponent {
      * @return {Promise<void>}
      */
     async waitUntilElementIsEnabled(timeout) {
-        const isEnabled = await utilsWaitForTrue(async () => await this.isEnabled(), timeout || 10000);
+        const isEnabled = await utilsWaitForTrue(async () => await this.isEnabled(), timeout || TestData.defaultTimeout);
         if (!isEnabled) {
             this.throwComponentError('is disabled');
         }
@@ -202,7 +195,7 @@ class BaseComponent {
      * @return {Promise<void>}
      */
     async waitUntilElementIsDisabled(timeout) {
-        const isDisabled = await utilsWaitForTrue(async () => await this.isDisabled(), timeout || 10000);
+        const isDisabled = await utilsWaitForTrue(async () => await this.isDisabled(), timeout || TestData.defaultTimeout);
         if (!isDisabled) {
             this.throwComponentError('is enabled');
         }
@@ -219,7 +212,7 @@ class BaseComponent {
      */
     async assertSelectorExists(selector, timeout) {
         console.warn('"assertSelectorExists" is deprecated. Use "waitUntilSelectorIsExisting"');
-        await this.waitUntilSelectorIsExisting(selector, timeout || 10000);
+        await this.waitUntilSelectorIsExisting(selector, timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -230,7 +223,7 @@ class BaseComponent {
      * @return {Promise<void>}
      */
     async waitUntilSelectorIsExisting(selector, timeout) {
-        if (!await this.isSelectorExisting(selector, timeout || 10000)) {
+        if (!await this.isSelectorExisting(selector, timeout || TestData.defaultTimeout)) {
             this.throwComponentError('does not exist');
         }
     }
@@ -245,7 +238,7 @@ class BaseComponent {
         const isAbsent = utilsWaitForTrue.bind(null, async () => {
             const isExisting = await this._isExisting();
             return !isExisting;
-        }, timeout || 10000);
+        }, timeout || TestData.defaultTimeout);
 
         if (!await isAbsent()) {
             this.throwComponentError('is not absent');
@@ -264,7 +257,7 @@ class BaseComponent {
      */
     async waitUntilSelectorExists(selector, timeout) {
         console.warn('"waitUntilSelectorExists" is deprecated. Use "isSelectorExisting"');
-        return await this.isSelectorExisting(selector, timeout || 10000);
+        return await this.isSelectorExisting(selector, timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -280,7 +273,7 @@ class BaseComponent {
             selector = Selector(selector);
         }
         if (!await selector.exists) {
-            if (!await utilsWaitForTrue(async () => await selector.exists, timeout || 10000)) {
+            if (!await utilsWaitForTrue(async () => await selector.exists, timeout || TestData.defaultTimeout)) {
                 return false;
             }
         }
@@ -297,7 +290,7 @@ class BaseComponent {
      */
     async waitUntilComponentExists(timeout) {
         console.warn('"waitUntilComponentExists" is deprecated. Use "isComponentExisting"');
-        return await this.isComponentExisting(timeout || 10000);
+        return await this.isComponentExisting(timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -307,7 +300,7 @@ class BaseComponent {
      * @return {Promise<boolean>} - true if the element exists, false otherwise
      */
     async isComponentExisting(timeout) {
-        return await this.isSelectorExisting(this.getSelector(), timeout || 10000);
+        return await this.isSelectorExisting(this.getSelector(), timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -321,7 +314,7 @@ class BaseComponent {
      */
     async assertComponentExists(timeout) {
         console.warn('"assertComponentExists" is deprecated. Use "waitUntilComponentIsExisting"');
-        await this.waitUntilComponentIsExisting(timeout || 10000);
+        await this.waitUntilComponentIsExisting(timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -332,7 +325,7 @@ class BaseComponent {
      * @return {Promise<void>}
      */
     async waitUntilComponentIsExisting(timeout) {
-        await this.waitUntilSelectorIsExisting(this.getSelector(), timeout || 10000);
+        await this.waitUntilSelectorIsExisting(this.getSelector(), timeout || TestData.defaultTimeout);
     }
 
     /**
@@ -355,7 +348,7 @@ class BaseComponent {
     * @param {number} [interval] - Interval between checks in ms. Default value is 50
     * @return {Promise<void>}
     */
-    async waitComponentForAssert(fn, timeout = 10000, interval = 50) {
+    async waitComponentForAssert(fn, timeout = TestData.defaultTimeout, interval = 50) {
         const finish = Date.now() + timeout;
         let lastError;
         while (Date.now() - finish < 0) {
